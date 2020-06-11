@@ -1,0 +1,20 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --buildsystem=cargo
+
+override_dh_auto_configure:
+	mv Cargo.lock Cargo.lock.source
+	dh_auto_configure
+	mv Cargo.lock.source Cargo.lock
+
+override_dh_auto_test:
+	sed -i -e '/^replace-with =/d' debian/cargo_home/config || :
+	dh_auto_test
+
+override_dh_auto_install:
+	sed -i -e '/^replace-with =/d' debian/cargo_home/config || :
+	dh_auto_install
+	rm -rf debian/subsystemctl/usr/share || :
+	chown root:root debian/subsystemctl/usr/bin/subsystemctl
+	chmod 6775 debian/subsystemctl/usr/bin/subsystemctl
