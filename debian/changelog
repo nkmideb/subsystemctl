@@ -1,0 +1,5 @@
+subsystemctl (0.1.1-0nkmi1~dist) unstable; urgency=medium
+
+  * initial package
+
+ -- Sorah Fukumori <her@sorah.jp>  Thu, 11 Jun 2020 07:10:16 +0000

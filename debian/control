@@ -1,0 +1,19 @@
+Source: subsystemctl
+Section: admin
+Priority: optional
+Maintainer: Sorah Fukumori <her@sorah.jp>
+Uploaders: Sorah Fukumori <her@sorah.jp>
+Build-Depends:
+  debhelper (>= 10),
+  dh-cargo,
+  cargo,
+  rustc
+Standards-Version: 4.3.0
+Homepage: https://github.com/sorah/subsystemctl
+
+Package: subsystemctl
+Architecture: any
+Depends:
+  ${misc:Depends},
+  ${shlibs:Depends},
+Description: Run systemd in a Linux namespace under WSL2
