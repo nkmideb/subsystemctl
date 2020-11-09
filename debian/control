@@ -3,6 +3,9 @@ Section: admin
 Priority: optional
 Maintainer: Sorah Fukumori <her@sorah.jp>
 Uploaders: Sorah Fukumori <her@sorah.jp>
+Depends: 
+  systemd-container,
+  systemd
 Build-Depends:
   debhelper (>= 10),
   dh-cargo,
