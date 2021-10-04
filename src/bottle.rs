@@ -136,7 +136,7 @@ fn exec_systemd() -> Result<(), error::Error> {
     match nix::unistd::fork() {
         Ok(ForkResult::Child) => exec_systemd0_handle_child_failure(exec_systemd1_child(systemd_bin)),
         Ok(ForkResult::Parent { child, .. }) => exec_systemd1_parent(child),
-        Err(e) => panic!(e),
+        Err(e) => panic!("{}",e),
     }
 }
 
@@ -147,7 +147,7 @@ fn exec_systemd0_handle_child_failure(r: Result<(), error::Error>) -> Result<(),
             log::error!("Something went wrong while starting");
             std::process::exit(exitstatus);
         }
-        Err(e) => panic!(e),
+        Err(e) => panic!("{}",e),
     }
     std::process::exit(0);
 }
@@ -202,7 +202,7 @@ fn exec_systemd1_child(systemd_bin: CString) -> Result<(), error::Error> {
     match nix::unistd::fork() {
         Ok(ForkResult::Child) => exec_systemd0_handle_child_failure(exec_systemd2_child(systemd_bin)),
         Ok(ForkResult::Parent { child, .. }) => exec_systemd2_parent(child),
-        Err(e) => panic!(e),
+        Err(e) => panic!("{}",e),
     }
 }
 
@@ -250,17 +250,17 @@ fn exec_systemd2_child(systemd_bin: CString) -> Result<(), error::Error> {
     match nix::unistd::close(0 as RawFd) {
         Ok(_) => {}
         Err(nix::Error::Sys(nix::errno::Errno::EBADF)) => {}
-        Err(e) => panic!(e),
+        Err(e) => panic!("{}",e),
     }
     match nix::unistd::close(1 as RawFd) {
         Ok(_) => {}
         Err(nix::Error::Sys(nix::errno::Errno::EBADF)) => {}
-        Err(e) => panic!(e),
+        Err(e) => panic!("{}",e),
     }
     match nix::unistd::close(2 as RawFd) {
         Ok(_) => {}
         Err(nix::Error::Sys(nix::errno::Errno::EBADF)) => {}
-        Err(e) => panic!(e),
+        Err(e) => panic!("{}",e),
     }
 
     nix::fcntl::open(OsStr::new("/dev/null"), OFlag::O_RDONLY, nix::sys::stat::Mode::empty()).unwrap();
@@ -316,12 +316,12 @@ pub fn wait() -> Result<(), Box<dyn std::error::Error>> {
                     Ok(_) => {}                                                       // ignore
                     Err(nix::Error::Sys(nix::errno::Errno::ECHILD)) => return Ok(()), // ???
                     Err(nix::Error::Sys(nix::errno::Errno::EINTR)) => {}              // ignore
-                    Err(e) => panic!(e),
+                    Err(e) => panic!("{}",e),
                 }
             }
         }
 
-        Err(e) => panic!(e),
+        Err(e) => panic!("{}",e),
     }
 }
 
@@ -360,7 +360,14 @@ pub fn shell(uid: Option<nix::unistd::Uid>, quiet: bool) -> Result<i32, error::E
         args.push(CString::new("--quiet").unwrap());
     }
 
+    args.push(CString::new("--setenv").unwrap());
+    args.push(CString::new(format!("SUBSYSTEMCTL_PATH={}", std::env::current_dir().unwrap().display())).unwrap());
+
     args.push(CString::new(".host").unwrap());
+
+    args.push(CString::new("/bin/sh").unwrap());
+    args.push(CString::new("-c").unwrap());
+    args.push(CString::new("cd \"${SUBSYSTEMCTL_PATH}\"; exec ${SHELL:-sh}").unwrap());
 
     let args_c: Vec<&CStr> = args.iter().map(|s| s.as_c_str()).collect();
     enter(
@@ -407,8 +414,6 @@ fn enter(
 
     setns_systemd();
 
-    // TODO: cwd
-
     match nix::unistd::fork() {
         Ok(ForkResult::Child) => {
             log::debug!("enter(child): uid={}, gid={}", uid, gid);
@@ -432,7 +437,7 @@ fn enter(
                     log::error!("exec failed: {}", errno.desc());
                     return Ok(128);
                 }
-                Err(e) => panic!(e),
+                Err(e) => panic!("{}",e),
                 Ok(_) => {}
             }
             panic!("should unreach");
@@ -449,11 +454,11 @@ fn enter(
                     Ok(_) => {}                                                        // ignore
                     Err(nix::Error::Sys(nix::errno::Errno::ECHILD)) => return Ok(128), // ???
                     Err(nix::Error::Sys(nix::errno::Errno::EINTR)) => {}               // ignore
-                    Err(e) => panic!(e),
+                    Err(e) => panic!("{}",e),
                 }
             }
         }
 
-        Err(e) => panic!(e),
+        Err(e) => panic!("{}",e),
     }
 }
